@@ -6,10 +6,10 @@ def load_data(messages_filepath, categories_filepath):
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
 
-    df = messages.merge(categories, how='left', on='id')
+    df = messages.merge(categories, on='id')
 
     categories = categories['categories'].str.split(";", expand=True)
-    row = categories.iloc[1,:]
+    row = categories.iloc[0,:]
 
     category_colnames = row.apply(lambda x : x[:-2])
     categories.columns = category_colnames
