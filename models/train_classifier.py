@@ -18,6 +18,17 @@ from sklearn.model_selection import GridSearchCV
 
 
 def load_data(database_filepath):
+    '''
+    Load data from the database created from the ETL process
+
+        Parameters: 
+            database_filepath (str): path to the database
+
+        Return:
+            X (DataFrame): message
+            y (DataFrame): labels
+            category_names (list): list of labels
+    '''
     engine = create_engine(f'sqlite:///{database_filepath}')
     df = pd.read_sql_table('disaster', engine)
     X = df['message']
@@ -29,6 +40,15 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
+    '''
+    Tokenization function including url placeholder and lemmatization
+
+        Parameters:
+            text (str): input text
+
+        Return:
+            clean_tokens (list): tokenized and lemmatized words
+    '''
     url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     detected_urls = re.findall(url_regex, text)
     for url in detected_urls:
@@ -46,6 +66,12 @@ def tokenize(text):
 
 
 def build_model():
+    '''
+    Model function using Pipeline and GridSearchCV
+
+        Return:
+            cv (object) = Grid Search Cross Validation model
+    '''
     pipeline = Pipeline([
         ('text_pipeline', Pipeline([
             ('vect', CountVectorizer(tokenizer=tokenize)),
@@ -56,8 +82,12 @@ def build_model():
     ])
 
     parameters = {
+        'text_pipeline__vect__ngram_range': ((1, 1), (1, 2)),
+        'text_pipeline__vect__max_df': (0.5, 0.75, 1.0),
+        'text_pipeline__vect__max_features': (None, 2500, 5000),
         'text_pipeline__tfidf__use_idf': (True, False),
-        'clf__estimator__n_estimators': [25, 50]
+        'clf__estimator__n_estimators': [10, 25, 50],
+        'clf__estimator__min_samples_split': [2, 3, 4]
     }
 
     cv = GridSearchCV(pipeline, param_grid=parameters)
@@ -66,12 +96,34 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    '''
+    Model evaluation function using classification_report
+
+        Parameter:
+            model (object): model that is used to predict values
+            X_test (DataFrame): message of test data
+            y_tes (DataFrame): labels of test data
+            category_names: list of labels
+
+        Return:
+            none - print the classification report result
+    '''
     y_pred = model.predict(X_test)
     report = classification_report(Y_test, y_pred, target_names=category_names)
     print(report)
 
 
 def save_model(model, model_filepath):
+    '''
+    Save model function to pickle file
+
+        Parameter:
+            model (object) - model that is used to predict values
+            model_filepath - file path where the model will be saved
+
+        Return:
+            none - save model to desired file path
+    '''
     pickle.dump(model, open(model_filepath, 'wb'))
 
 

@@ -3,6 +3,16 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 def load_data(messages_filepath, categories_filepath):
+    '''
+    Load data message and categories csv files
+
+        Parameters:
+            message_filepath (str): file path message csv files placed in
+            categories_filepath (str): file path categories csv files placed in
+
+        Return:
+            df (DataFrame): merged DataFrame of messages and categories files
+    '''
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
 
@@ -27,12 +37,28 @@ def load_data(messages_filepath, categories_filepath):
     return df
 
 def clean_data(df):
+    '''
+    Data cleaning process, specifically drop null values
+
+        Parameters:
+            df (DataFrame): merged messages and categories DataFrame
+
+        Return:
+            df (DataFrame): cleaned DataFrame
+    '''
     df = df.dropna()
 
     return df
 
 
 def save_data(df, database_filename):
+    '''
+    Save DataFrame to database
+
+        Parameters:
+            df (DataFrame): cleaned DataFrame
+            database_filename (str): name of the saved database
+    '''
     engine = create_engine(f'sqlite:///{database_filename}')
     df.to_sql('disaster', engine, if_exists='replace', index=False) 
 
